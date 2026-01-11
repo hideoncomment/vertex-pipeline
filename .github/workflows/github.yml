@@ -1,0 +1,36 @@
+name: Github Actions Demo
+run-name: ${{github.actor}} is testing out Github Actions
+on: [push]
+jobs:
+    dev_terraform:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout Code
+                uses: actions/checkout@v3
+
+            -   name: SetUp Terraform
+                uses: hashicorp/setup-terraform@v2
+                with:
+                    terraform_wrapper: false
+            
+            -   name: Authenticate with GCP
+                uses: google-github-actions/auth@v1
+                with:
+                    credentials_json: ${{ secrets.GCP_GOOGLE_CREDENTIAL}}
+
+            -   name: Terraform Bucket BootStrap
+                run: gcloud storage buckets create gs://alexsyk-terraform-state --location=us-central1
+                
+            -   name: Terraform Init
+                working-directory: terraform
+                run: terraform init
+
+            -   name: Terraform Plan
+                working-directory: terraform
+                run: terraform plan
+
+            -   name: Terraform Apply
+                working-directory: terraform
+                run: terraform apply -auto-approve
+
+            - run: echo "job concluído!"

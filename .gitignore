@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Virtualenv
+.venv/
+venv/
+
+# DS Library
+lib/
+
+# DS API
+api/
+
+# Pytest
+.pytest_cache/
+
+# python version
+
+.python-version
+
+# ENV
+
+.env
+
+# JSON
+
+*.json
+
+models/
+*.joblib
