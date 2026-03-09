@@ -51,9 +51,9 @@ jobs:
                 run: gcloud auth configure-docker us-central1-docker.pkg.dev
 
             -   name: Build Image
-                run: sudo docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest .
+                run: docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest .
 
             -   name: Push Image
-                run: sudo docker push us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest 
+                run: docker push us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest 
                 
             - run: echo "job concluído!"
