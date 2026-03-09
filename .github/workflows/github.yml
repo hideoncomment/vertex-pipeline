@@ -2,7 +2,7 @@ name: Github Actions Demo
 run-name: ${{github.actor}} is testing out Github Actions
 on: [push]
 jobs:
-    dev_terraform:
+    terraform_setup:
         runs-on: ubuntu-latest
         steps:
             -   name: Checkout Code
@@ -19,7 +19,7 @@ jobs:
                     credentials_json: ${{ secrets.GCP_GOOGLE_CREDENTIAL}}
 
             -   name: Terraform Bucket BootStrap
-                run: gcloud storage buckets update gs://alexsyk-terraform-state --versioning
+                run: gcloud storage buckets update gs://alexsyk-terraform-state --versioning || true
                 
             -   name: Terraform Init
                 working-directory: terraform
@@ -33,4 +33,24 @@ jobs:
                 working-directory: terraform
                 run: terraform apply -auto-approve
 
+            - run: echo "job concluído!"
+
+    build_image:
+        runs-on: ubuntu-latest
+        needs: terraform_setup
+        steps:
+            -   name: Checkout Code
+                uses: actions/checkout@v3
+            
+            -   name: Authenticate with GCP
+                uses: google-github-actions/auth@v1
+                with:
+                    credentials_json: ${{ secrets.GCP_GOOGLE_CREDENTIAL}}
+
+            -   name: Build Image
+                run: sudo docker buildx build --platform linux/amd64 -t us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest .
+
+            -   name: Push Image
+                run: sudo docker push us-central1-docker.pkg.dev/vertex-pipeline-484002/opentelemetry/debug-img:latest 
+                
             - run: echo "job concluído!"
