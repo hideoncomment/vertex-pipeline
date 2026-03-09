@@ -19,7 +19,7 @@ jobs:
                     credentials_json: ${{ secrets.GCP_GOOGLE_CREDENTIAL}}
 
             -   name: Terraform Bucket BootStrap
-                run: echo "Feito!" | gcloud storage buckets create gs://alexsyk-terraform-state --location=us-central1
+                run: gcloud storage buckets update gs://alexsyk-terraform-state --versioning
                 
             -   name: Terraform Init
                 working-directory: terraform
