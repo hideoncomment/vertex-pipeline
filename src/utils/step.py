@@ -27,7 +27,7 @@ class BaseStep(ABC):
         for key, value in vars(args).items():
             if "output" in key and isinstance(value, str) and "/gcs/" in value:
                 os.makedirs(os.path.dirname(value), exist_ok=True)
-                logging.info(f"Pasta garantida para: {key}")
+                print(f"Pasta garantida para: {key}")
 
         with open(args.input_trace_path, 'r') as f:
             traceparent_string = f.read().strip()
@@ -36,10 +36,9 @@ class BaseStep(ABC):
         ctx = extract(carrier)
         print(f"--- TRACEPARENT RECEBIDO: '{traceparent_string}' ---")
 
-        with tracer.start_as_current_span("execucao_container_customizado", context=ctx):
+        with tracer.start_as_current_span(args.input_component_name, context=ctx): #type: ignore
             print("Rodando script empacotado no container...")
             
-            # 5. Executa sua lógica central
             self.main(args)
 
         provider.shutdown()
@@ -47,7 +46,6 @@ class BaseStep(ABC):
     def get_parser(self):
         return argparse.ArgumentParser()
     
-    # obrigando todas as instâncias a terem a função main
     @abstractmethod
     def main(self, args):
         pass

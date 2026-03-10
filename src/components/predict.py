@@ -12,6 +12,7 @@ class PredictStep(BaseStep):
         p.add_argument("--input-preprocess-dataset", type=str)
         p.add_argument("--input-predict-model", type=str)
         p.add_argument("--input-trace-path", type=str)
+        p.add_argument("--input-component-name", type=str)
         p.add_argument("--offset")
         p.add_argument("--output-prediction-results", type=str)
         return p

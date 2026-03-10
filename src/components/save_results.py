@@ -10,6 +10,7 @@ class SaveResults(BaseStep):
         p.add_argument("--name", type=str)
         p.add_argument("--input-prediction-results-dataset", type=str)
         p.add_argument("--input-trace-path", type=str)
+        p.add_argument("--input-component-name", type=str)
         return p
 
     def main(self, args):

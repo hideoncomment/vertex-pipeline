@@ -11,10 +11,11 @@ class LoadStep(BaseStep):
         p.add_argument("--name")
         p.add_argument("--output-load-dataset", type=str)
         p.add_argument("--input-trace-path", type=str)
+        p.add_argument("--input-component-name", type=str)
         return p
 
     def main(self, args):
-        
+
         logging.info("="*40)
         logging.info(f"--- [LOAD] Carregando dados do Projeto {args.name} ---")
         logging.info(f"Salvando os dados em {args.output_load_dataset}")

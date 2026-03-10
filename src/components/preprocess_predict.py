@@ -13,6 +13,7 @@ class PreprocessStep(BaseStep):
         p.add_argument("--name", type=str)
         p.add_argument("--input-load-file", type=str)
         p.add_argument("--input-trace-path", type=str)
+        p.add_argument("--input-component-name", type=str)
         p.add_argument("--output-preprocess-dataset", type=str)
         return p
 

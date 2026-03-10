@@ -33,7 +33,7 @@ def get_tracer_id(project_id: str, output_trace: Output[Artifact]):
     
     tracer = trace.get_tracer(__name__)
     
-    with tracer.start_as_current_span("passo_inicial_python"):
+    with tracer.start_as_current_span("pipeline-treino"):
         print("Iniciando a pipeline e gerando o ID raiz...")
         
         carrier = {}
@@ -48,19 +48,20 @@ def get_tracer_id(project_id: str, output_trace: Output[Artifact]):
 
 
 @dsl.container_component
-def load_op(name: str, input_trace_path: Input[Artifact], output_load_dataset: Output[Artifact]):
+def load_op(name: str, input_trace_path: Input[Artifact], input_component_name: str, output_load_dataset: Output[Artifact]):
     return dsl.ContainerSpec(
         image=settings.FULL_IMAGE_URI, 
         command=["python", "-m", "src.components.load"], 
         args=[
             "--name", name,
             "--input-trace-path", input_trace_path.path,
+            "--input-component-name", input_component_name,
             "--output-load-dataset", output_load_dataset.path
         ]
     )
 
 @dsl.container_component
-def preprocess_op(name: str, input_load_dataset: Input[Artifact], input_trace_path: Input[Artifact], output_preprocess_dataset: Output[Artifact]):
+def preprocess_op(name: str, input_load_dataset: Input[Artifact], input_trace_path: Input[Artifact], input_component_name: str, output_preprocess_dataset: Output[Artifact]):
     return dsl.ContainerSpec(
         image=settings.FULL_IMAGE_URI, 
         command=["python", "-m", "src.components.preprocess_train"], 
@@ -68,12 +69,13 @@ def preprocess_op(name: str, input_load_dataset: Input[Artifact], input_trace_pa
             "--name", name,
             "--input-load-file", input_load_dataset.path,
             "--input-trace-path", input_trace_path.path,
+            "--input-component-name", input_component_name,
             "--output-preprocess-file", output_preprocess_dataset.path
         ]
     )
 
 @dsl.container_component
-def training_op(name: str, input_preprocess_dataset: Input[Artifact], input_trace_path: Input[Artifact], output_training_model: Output[Artifact]):
+def training_op(name: str, input_preprocess_dataset: Input[Artifact], input_trace_path: Input[Artifact], input_component_name: str, output_training_model: Output[Artifact]):
     return dsl.ContainerSpec(
         image=settings.FULL_IMAGE_URI, 
         command=["python", "-m", "src.components.train"], 
@@ -81,12 +83,13 @@ def training_op(name: str, input_preprocess_dataset: Input[Artifact], input_trac
             "--name", name,
             "--input-preprocess-dataset", input_preprocess_dataset.path,
             "--input-trace-path", input_trace_path.path,
-            "--output-training-model", output_training_model.path
+            "--input-component-name", input_component_name,
+            "--output-training-model", output_training_model.path,
         ]
     )
 
 @dsl.container_component
-def save_model_op(name: str, input_trace_path: Input[Artifact], output_training_model: Input[Artifact]):
+def save_model_op(name: str, input_trace_path: Input[Artifact], input_component_name: str, output_training_model: Input[Artifact]):
     return dsl.ContainerSpec(
         image=settings.FULL_IMAGE_URI, 
         command=["python", "-m", "src.components.save_model"], 
@@ -96,7 +99,8 @@ def save_model_op(name: str, input_trace_path: Input[Artifact], output_training_
             "--location", settings.GCP_REGION,
             "--image", settings.FULL_IMAGE_URI,
             "--input-training-model", output_training_model.path,
-            "--input-trace-path", input_trace_path.path
+            "--input-trace-path", input_trace_path.path,
+            "--input-component-name", input_component_name
         ]
     )
 
@@ -118,7 +122,8 @@ def training_pipeline(
     load_task = (
         load_op(
             name=name,
-            input_trace_path=get_tracer_id_task.outputs["output_trace"]
+            input_trace_path=get_tracer_id_task.outputs["output_trace"],
+            input_component_name = "load-op"
         )
         .set_cpu_limit("1")
         .set_memory_limit("4G")
@@ -128,7 +133,8 @@ def training_pipeline(
         preprocess_op(
             name=name,
             input_load_dataset=load_task.outputs["output_load_dataset"],
-            input_trace_path=get_tracer_id_task.outputs["output_trace"]
+            input_trace_path=get_tracer_id_task.outputs["output_trace"],
+            input_component_name = "preprocess-op"
         )
         .set_cpu_limit("1")
         .set_memory_limit("4G")
@@ -138,7 +144,8 @@ def training_pipeline(
         training_op(
             name=name,
             input_preprocess_dataset=preprocess_task.outputs["output_preprocess_dataset"],
-            input_trace_path=get_tracer_id_task.outputs["output_trace"]
+            input_trace_path=get_tracer_id_task.outputs["output_trace"],
+            input_component_name = "training-op"
         )
     )
 
@@ -146,6 +153,7 @@ def training_pipeline(
         save_model_op(
             name=name,
             output_training_model=model_training_task.outputs["output_training_model"],
-            input_trace_path=get_tracer_id_task.outputs["output_trace"]
+            input_trace_path=get_tracer_id_task.outputs["output_trace"],
+            input_component_name = "save-model-op"
         )
     )
