@@ -1,3 +1,5 @@
+![Header](/assets/kubeflow_banner.png)
+
 # Proof of Concept - Kubeflow SDK with Opentelemetry
 This project aims to automatize the process of creating and scheduling pipelines on Google Cloud Vertex AI Pipelines monitoring the traces using OpenTelemetry.
 
